@@ -86,7 +86,7 @@ export const InteractiveCssPreview: React.FC<CssPreviewProps> = ({
         hex,
         rgb,
         hsl,
-        usage: Array.from(new Set(usage)) // Remove duplicates
+        usage: [...new Set(usage)] // Remove duplicates
       });
     });
 
