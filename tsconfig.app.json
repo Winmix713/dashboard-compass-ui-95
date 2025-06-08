@@ -23,10 +23,8 @@
 
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@shared/*": ["./shared/*"],
-      "@assets/*": ["./attached_assets/*"]
+      "@/*": ["./src/*"]
     }
   },
-  "include": ["src", "shared"]
+  "include": ["src"]
 }
