@@ -1,18 +1,18 @@
+
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { AlertTriangle } from "lucide-react";
 
 interface ErrorBoundaryState {
   hasError: boolean;
   error?: Error;
 }
 
-export class ErrorBoundary extends React.Component<
-  React.PropsWithChildren<{}>,
-  ErrorBoundaryState
-> {
-  constructor(props: React.PropsWithChildren<{}>) {
+interface ErrorBoundaryProps {
+  children: React.ReactNode;
+  fallback?: React.ComponentType<{ error?: Error }>;
+}
+
+export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false };
   }
@@ -22,28 +22,31 @@ export class ErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error("Error caught by boundary:", error, errorInfo);
+    console.error('ErrorBoundary caught an error:', error, errorInfo);
   }
 
   render() {
     if (this.state.hasError) {
+      if (this.props.fallback) {
+        const FallbackComponent = this.props.fallback;
+        return <FallbackComponent error={this.state.error} />;
+      }
+
       return (
-        <Card className="max-w-md mx-auto">
-          <CardHeader className="text-center">
-            <AlertTriangle className="mx-auto text-destructive mb-4" size={48} />
-            <CardTitle>Hiba történt</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Váratlan hiba lépett fel az alkalmazásban. Próbáld újra!
+        <div className="flex min-h-screen items-center justify-center bg-background">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-foreground mb-4">Something went wrong</h2>
+            <p className="text-muted-foreground mb-4">
+              {this.state.error?.message || 'An unexpected error occurred'}
             </p>
-            <Button
-              onClick={() => this.setState({ hasError: false })}
+            <button
+              onClick={() => this.setState({ hasError: false, error: undefined })}
+              className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
             >
-              Újrapróbálás
-            </Button>
-          </CardContent>
-        </Card>
+              Try again
+            </button>
+          </div>
+        </div>
       );
     }
 
