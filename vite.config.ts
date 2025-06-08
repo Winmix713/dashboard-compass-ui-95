@@ -45,4 +45,17 @@ export default defineConfig(async ({ mode }) => ({
   optimizeDeps: {
     include: ["react", "react-dom"],
   },
+  // Force Vite to use tsconfig.app.json for better path resolution
+  esbuild: {
+    tsconfigRaw: {
+      compilerOptions: {
+        baseUrl: ".",
+        paths: {
+          "@/*": ["./src/*"],
+          "@shared/*": ["./shared/*"],
+          "@assets/*": ["./attached_assets/*"]
+        }
+      }
+    }
+  }
 }));
