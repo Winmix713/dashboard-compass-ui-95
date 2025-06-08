@@ -17,7 +17,7 @@ import {
   type FigmaVersion,
   type VersionComparison
 } from "@shared/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 
 // Mock data for fallback when database is not available
 const mockStats = {
@@ -49,7 +49,6 @@ class Storage {
         return mockStats;
       }
 
-      // Get real stats from database
       const [components, jobs] = await Promise.all([
         db.select().from(generatedComponents),
         db.select().from(processingJobs).where(eq(processingJobs.status, 'completed'))
@@ -61,8 +60,8 @@ class Storage {
       
       return {
         totalComponents,
-        totalTokens: Math.floor(totalComponents * 0.5), // Estimated
-        averageProcessingTime: 2.4, // Default value
+        totalTokens: Math.floor(totalComponents * 0.5),
+        averageProcessingTime: 2.4,
         successRate: totalJobs > 0 ? (successfulJobs.length / totalJobs) * 100 : 100
       };
     } catch (error) {
@@ -77,7 +76,10 @@ class Storage {
       if (!isDbAvailable) {
         const mockProject: FigmaProject = {
           id: Date.now(),
-          ...data,
+          name: data.name,
+          figmaFileId: data.figmaFileId,
+          figmaUrl: data.figmaUrl,
+          userId: data.userId ?? null,
           createdAt: new Date(),
           updatedAt: new Date()
         };
@@ -99,7 +101,14 @@ class Storage {
       if (!isDbAvailable) {
         const mockComponent: GeneratedComponent = {
           id: Date.now(),
-          ...data,
+          name: data.name,
+          projectId: data.projectId ?? null,
+          sourceType: data.sourceType,
+          sourceData: data.sourceData ?? null,
+          generatedCode: data.generatedCode ?? null,
+          designTokens: data.designTokens ?? null,
+          metadata: data.metadata ?? null,
+          isPublic: data.isPublic ?? false,
           createdAt: new Date()
         };
         mockComponents.push(mockComponent);
@@ -120,7 +129,13 @@ class Storage {
       if (!isDbAvailable) {
         const mockJob: ProcessingJob = {
           id: Date.now(),
-          ...data,
+          type: data.type,
+          status: data.status,
+          inputData: data.inputData ?? null,
+          outputData: data.outputData ?? null,
+          errorMessage: data.errorMessage ?? null,
+          progressPercentage: data.progressPercentage ?? 0,
+          userId: data.userId ?? null,
           createdAt: new Date(),
           completedAt: null
         };
@@ -235,7 +250,15 @@ class Storage {
       if (!isDbAvailable) {
         const mockVersion: FigmaVersion = {
           id: Date.now(),
-          ...data,
+          projectId: data.projectId,
+          versionName: data.versionName,
+          versionDescription: data.versionDescription ?? null,
+          figmaLastModified: data.figmaLastModified,
+          figmaVersionId: data.figmaVersionId ?? null,
+          figmaData: data.figmaData,
+          components: data.components,
+          designTokens: data.designTokens,
+          thumbnailUrl: data.thumbnailUrl ?? null,
           createdAt: new Date()
         };
         return mockVersion;
@@ -287,7 +310,10 @@ class Storage {
       if (!isDbAvailable) {
         const mockComparison: VersionComparison = {
           id: Date.now(),
-          ...data,
+          projectId: data.projectId,
+          fromVersionId: data.fromVersionId,
+          toVersionId: data.toVersionId,
+          comparisonData: data.comparisonData,
           createdAt: new Date()
         };
         return mockComparison;
@@ -309,8 +335,10 @@ class Storage {
       }
 
       const [comparison] = await db.select().from(versionComparisons)
-        .where(eq(versionComparisons.fromVersionId, fromVersionId))
-        .where(eq(versionComparisons.toVersionId, toVersionId));
+        .where(and(
+          eq(versionComparisons.fromVersionId, fromVersionId),
+          eq(versionComparisons.toVersionId, toVersionId)
+        ));
       return comparison || null;
     } catch (error) {
       console.error("Error fetching comparison:", error);
