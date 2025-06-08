@@ -112,6 +112,7 @@ export class MemStorage implements IStorage {
     const project: FigmaProject = {
       ...insertProject,
       id,
+      userId: insertProject.userId ?? null,
       createdAt: now,
       updatedAt: now,
     };
@@ -132,6 +133,12 @@ export class MemStorage implements IStorage {
     const component: GeneratedComponent = {
       ...insertComponent,
       id,
+      projectId: insertComponent.projectId ?? null,
+      metadata: insertComponent.metadata ?? {},
+      designTokens: insertComponent.designTokens ?? {},
+      sourceData: insertComponent.sourceData ?? {},
+      generatedCode: insertComponent.generatedCode ?? {},
+      isPublic: insertComponent.isPublic ?? null,
       createdAt: new Date(),
     };
     this.generatedComponents.set(id, component);
@@ -160,6 +167,11 @@ export class MemStorage implements IStorage {
     const job: ProcessingJob = {
       ...insertJob,
       id,
+      userId: insertJob.userId ?? null,
+      inputData: insertJob.inputData ?? {},
+      outputData: insertJob.outputData ?? {},
+      errorMessage: insertJob.errorMessage ?? null,
+      progressPercentage: insertJob.progressPercentage ?? null,
       createdAt: new Date(),
       completedAt: null,
     };
@@ -228,6 +240,9 @@ export class MemStorage implements IStorage {
     const version: FigmaVersion = {
       ...insertVersion,
       id,
+      versionDescription: insertVersion.versionDescription ?? null,
+      figmaVersionId: insertVersion.figmaVersionId ?? null,
+      thumbnailUrl: insertVersion.thumbnailUrl ?? null,
       createdAt: new Date(),
     };
     this.figmaVersions.set(id, version);
