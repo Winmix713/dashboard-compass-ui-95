@@ -2,7 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart3 } from "lucide-react";
 
-export function DesignAnalyticsTab() {
+export default function DesignAnalyticsTab() {
   return (
     <div className="space-y-6">
       <Card>

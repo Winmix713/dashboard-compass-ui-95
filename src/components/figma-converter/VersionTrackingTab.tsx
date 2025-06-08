@@ -2,7 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GitBranch } from "lucide-react";
 
-export function VersionTrackingTab() {
+export default function VersionTrackingTab() {
   return (
     <div className="space-y-6">
       <Card>
