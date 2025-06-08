@@ -11,8 +11,9 @@ import { DesignAnalyticsTab } from "@/components/figma-converter/DesignAnalytics
 import OutputPanel from "@/components/figma-converter/OutputPanel";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Download, Settings, HelpCircle, Shield, Key } from "lucide-react";
+import { Download, Settings, HelpCircle, Shield, Key, Book } from "lucide-react";
 import { useFigmaSettings } from "@/hooks/useFigmaSettings";
+import { Link } from "wouter";
 
 export default function FigmaConverter() {
   const [activeTab, setActiveTab] = useState("url-import");
@@ -54,6 +55,12 @@ export default function FigmaConverter() {
                   </Badge>
                 )}
               </div>
+              <Link href="/documentation">
+                <Button variant="outline" size="sm">
+                  <Book className="h-4 w-4 mr-2" />
+                  Documentation
+                </Button>
+              </Link>
               <Button variant="outline" size="sm">
                 <HelpCircle className="h-4 w-4 mr-2" />
                 Help
