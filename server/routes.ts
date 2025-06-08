@@ -210,8 +210,38 @@ function rgbaToHex(color: any, opacity: number = 1): string {
   return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
 }
 
-function compareVersions(fromVersion: any, toVersion: any): any {
-  const comparison = {
+function convertFigmaColorToHex(color: any, opacity: number = 1): string {
+  return rgbaToHex(color, opacity);
+}
+
+interface ComparisonChange {
+  type: string;
+  id: any;
+  name: any;
+  data?: any;
+  from?: any;
+  to?: any;
+}
+
+interface ComparisonSummary {
+  totalChanges: number;
+  componentChanges: number;
+  designTokenChanges: number;
+}
+
+interface VersionComparison {
+  changes: {
+    added: ComparisonChange[];
+    removed: ComparisonChange[];
+    modified: ComparisonChange[];
+  };
+  colorChanges: Array<{ type: string; color: string }>;
+  typographyChanges: any[];
+  summary: ComparisonSummary;
+}
+
+function compareVersions(fromVersion: any, toVersion: any): VersionComparison {
+  const comparison: VersionComparison = {
     changes: {
       added: [],
       removed: [],
@@ -270,12 +300,17 @@ function compareVersions(fromVersion: any, toVersion: any): any {
   const fromTokens = fromVersion.designTokens as any;
   const toTokens = toVersion.designTokens as any;
 
-  if (fromTokens.colors && toTokens.colors) {
-    const addedColors = toTokens.colors.filter((c: string) => !fromTokens.colors.includes(c));
-    const removedColors = fromTokens.colors.filter((c: string) => !toTokens.colors.includes(c));
+  if (fromTokens && fromTokens.colors && toTokens && toTokens.colors) {
+    const fromColors = Array.isArray(fromTokens.colors) ? fromTokens.colors : [];
+    const toColors = Array.isArray(toTokens.colors) ? toTokens.colors : [];
     
-    comparison.colorChanges = [...addedColors.map((c: string) => ({ type: 'added', color: c })), 
-                              ...removedColors.map((c: string) => ({ type: 'removed', color: c }))];
+    const addedColors = toColors.filter((c: string) => !fromColors.includes(c));
+    const removedColors = fromColors.filter((c: string) => !toColors.includes(c));
+    
+    comparison.colorChanges = [
+      ...addedColors.map((c: string) => ({ type: 'added', color: c })), 
+      ...removedColors.map((c: string) => ({ type: 'removed', color: c }))
+    ];
   }
 
   comparison.summary.totalChanges = comparison.changes.added.length + 
@@ -324,6 +359,57 @@ function extractColorPaletteFromFigmaData(figmaData: any): any[] {
   }
 
   return Array.from(colors.values());
+}
+
+function extractDesignTokensFromFigmaData(figmaData: any): any {
+  const colors: any[] = [];
+  const typography: any[] = [];
+  const spacing: any[] = [];
+
+  function traverseNode(node: any) {
+    if (node.fills) {
+      node.fills.forEach((fill: any) => {
+        if (fill.type === 'SOLID' && fill.color) {
+          const hex = convertFigmaColorToHex(fill.color, fill.opacity || 1);
+          colors.push({
+            name: `${node.name || 'color'}-${colors.length}`,
+            value: hex,
+            type: 'color'
+          });
+        }
+      });
+    }
+
+    if (node.type === 'TEXT' && node.style) {
+      typography.push({
+        name: `${node.name || 'text'}-style`,
+        fontFamily: node.style.fontFamily || 'Inter',
+        fontSize: node.style.fontSize || 16,
+        fontWeight: node.style.fontWeight || 400,
+        lineHeight: node.style.lineHeightPx ? `${node.style.lineHeightPx}px` : 'normal',
+        letterSpacing: node.style.letterSpacing ? `${node.style.letterSpacing}px` : 'normal'
+      });
+    }
+
+    if (node.children) {
+      node.children.forEach(traverseNode);
+    }
+  }
+
+  if (figmaData.document) {
+    traverseNode(figmaData.document);
+  }
+
+  // Add default spacing values
+  spacing.push(
+    { name: 'xs', value: '4px' },
+    { name: 'sm', value: '8px' },
+    { name: 'md', value: '16px' },
+    { name: 'lg', value: '24px' },
+    { name: 'xl', value: '32px' }
+  );
+
+  return { colors, typography, spacing };
 }
 
 function rgbToHsl(r: number, g: number, b: number): { h: number; s: number; l: number } {
