@@ -96,8 +96,9 @@ export default function FigmaUrlTab() {
       return response.json();
     },
     enabled: !!activeJobId,
-    refetchInterval: (data) => {
-      if (!data?.data || data.data.status === 'completed' || data.data.status === 'failed') {
+    refetchInterval: (query) => {
+      const data = query.state.data;
+      if (!data || data.status === 'completed' || data.status === 'failed') {
         return false;
       }
       return 2000; // Poll every 2 seconds
