@@ -1,4 +1,3 @@
-
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
@@ -45,7 +44,7 @@ export default defineConfig(async ({ mode }) => ({
   optimizeDeps: {
     include: ["react", "react-dom"],
   },
-  // Force Vite to use tsconfig.app.json for better path resolution
+  // Force correct TypeScript path resolution - override the wrong tsconfig.json
   esbuild: {
     tsconfigRaw: {
       compilerOptions: {
@@ -54,8 +53,19 @@ export default defineConfig(async ({ mode }) => ({
           "@/*": ["./src/*"],
           "@shared/*": ["./shared/*"],
           "@assets/*": ["./attached_assets/*"]
-        }
+        },
+        jsx: "react-jsx",
+        target: "ES2020",
+        lib: ["ES2020", "DOM", "DOM.Iterable"],
+        moduleResolution: "bundler",
+        allowImportingTsExtensions: true,
+        isolatedModules: true,
+        strict: false
       }
     }
+  },
+  // Also ensure TypeScript uses the correct config
+  define: {
+    __DEV__: mode === 'development'
   }
 }));
