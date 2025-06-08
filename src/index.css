@@ -1,3 +1,5 @@
+
+@import url('@fortawesome/fontawesome-free/css/all.css');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -121,5 +123,34 @@
   
   .bg-info-foreground {
     background-color: var(--info-foreground);
+  }
+
+  /* Additional utility classes for common patterns */
+  .bg-primary-50 {
+    background-color: hsl(207, 90%, 97%);
+  }
+  
+  .bg-gray-50 {
+    background-color: hsl(210, 20%, 98%);
+  }
+  
+  .text-gray-600 {
+    color: hsl(215, 14%, 34%);
+  }
+  
+  .text-gray-700 {
+    color: hsl(217, 19%, 27%);
+  }
+  
+  .text-gray-800 {
+    color: hsl(218, 25%, 20%);
+  }
+  
+  .border-gray-200 {
+    border-color: hsl(214, 32%, 91%);
+  }
+  
+  .border-gray-300 {
+    border-color: hsl(213, 27%, 84%);
   }
 }
