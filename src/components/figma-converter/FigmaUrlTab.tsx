@@ -4,11 +4,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink, Download, AlertCircle } from "lucide-react";
+import { FigmaService } from "@/services/figmaService";
+import { useErrorHandler } from "@/hooks/useErrorHandler";
+import { useJobPolling } from "@/hooks/useJobPolling";
+import { useAppContext } from "@/contexts/AppContext";
 import { toast } from "sonner";
 
 export default function FigmaUrlTab() {
   const [figmaUrl, setFigmaUrl] = useState("");
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [currentJobId, setCurrentJobId] = useState<number | null>(null);
+  const { state, dispatch } = useAppContext();
+  const { handleError } = useErrorHandler();
+
+  const { job, isPolling } = useJobPolling(currentJobId, (completedJob) => {
+    toast.success("Figma file imported successfully!");
+    dispatch({ type: 'SET_PROCESSING', payload: false });
+    setCurrentJobId(null);
+  });
 
   const handleImport = async () => {
     if (!figmaUrl) {
@@ -16,15 +28,29 @@ export default function FigmaUrlTab() {
       return;
     }
 
-    setIsProcessing(true);
+    if (!state.figmaToken) {
+      toast.error("Please configure your Figma token in Settings");
+      return;
+    }
+
+    dispatch({ type: 'SET_PROCESSING', payload: true });
+
     try {
-      // Simulate processing
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      toast.success("Figma file imported successfully!");
+      // First validate the URL
+      const validation = await FigmaService.validateUrl(figmaUrl, state.figmaToken);
+      
+      if (!validation.valid) {
+        throw new Error(validation.message || 'Invalid Figma URL or token');
+      }
+
+      // Start extraction
+      const response = await FigmaService.extractComponents(figmaUrl, state.figmaToken);
+      setCurrentJobId(response.jobId);
+      
+      toast.success("Starting Figma file import...");
     } catch (error) {
-      toast.error("Failed to import Figma file");
-    } finally {
-      setIsProcessing(false);
+      dispatch({ type: 'SET_PROCESSING', payload: false });
+      handleError(error as Error, 'Figma Import');
     }
   };
 
@@ -49,6 +75,7 @@ export default function FigmaUrlTab() {
               onChange={(e) => setFigmaUrl(e.target.value)}
               placeholder="https://www.figma.com/file/..."
               className="w-full px-3 py-2 border border-input rounded-md"
+              disabled={state.isProcessing}
             />
           </div>
           
@@ -59,8 +86,27 @@ export default function FigmaUrlTab() {
             </span>
           </div>
 
-          <Button onClick={handleImport} disabled={isProcessing} className="w-full">
-            {isProcessing ? "Processing..." : "Import Figma File"}
+          {job && (
+            <div className="p-3 bg-muted rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium">Processing Status</span>
+                <span className="text-sm">{job.progressPercentage}%</span>
+              </div>
+              <div className="w-full bg-background rounded-full h-2">
+                <div 
+                  className="bg-primary h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${job.progressPercentage}%` }}
+                />
+              </div>
+            </div>
+          )}
+
+          <Button 
+            onClick={handleImport} 
+            disabled={state.isProcessing || isPolling} 
+            className="w-full"
+          >
+            {state.isProcessing || isPolling ? "Processing..." : "Import Figma File"}
           </Button>
         </CardContent>
       </Card>

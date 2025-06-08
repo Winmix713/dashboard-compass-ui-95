@@ -1,3 +1,4 @@
+
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
@@ -7,7 +8,7 @@ import { componentTagger } from "lovable-tagger";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-export default defineConfig(async ({ mode }) => ({
+export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     runtimeErrorOverlay(),
@@ -15,7 +16,7 @@ export default defineConfig(async ({ mode }) => ({
     ...(process.env.NODE_ENV !== "production" &&
     process.env.REPL_ID !== undefined
       ? [
-          await import("@replit/vite-plugin-cartographer").then((m) =>
+          import("@replit/vite-plugin-cartographer").then((m) =>
             m.cartographer(),
           ),
         ]
@@ -44,27 +45,6 @@ export default defineConfig(async ({ mode }) => ({
   optimizeDeps: {
     include: ["react", "react-dom"],
   },
-  // Force correct TypeScript path resolution - override the wrong tsconfig.json
-  esbuild: {
-    tsconfigRaw: {
-      compilerOptions: {
-        baseUrl: ".",
-        paths: {
-          "@/*": ["./src/*"],
-          "@shared/*": ["./shared/*"],
-          "@assets/*": ["./attached_assets/*"]
-        },
-        jsx: "react-jsx",
-        target: "ES2020",
-        lib: ["ES2020", "DOM", "DOM.Iterable"],
-        moduleResolution: "bundler",
-        allowImportingTsExtensions: true,
-        isolatedModules: true,
-        strict: false
-      }
-    }
-  },
-  // Also ensure TypeScript uses the correct config
   define: {
     __DEV__: mode === 'development'
   }
