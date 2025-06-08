@@ -29,13 +29,17 @@ export default defineConfig(async ({ mode }) => ({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    sourcemap: mode === 'development',
   },
   server: {
     host: "::",
     port: 8080,
     fs: {
-      strict: true,
-      deny: ["**/.*"],
+      strict: false,
+      allow: [".."],
     },
+  },
+  optimizeDeps: {
+    include: ["react", "react-dom"],
   },
 }));
