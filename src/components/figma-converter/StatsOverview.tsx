@@ -1,13 +1,16 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
-import { Box, Palette, Clock, CheckCircle } from "lucide-react";
+import { Box, Palette, Clock, CheckCircle, AlertCircle } from "lucide-react";
 
 export default function StatsOverview() {
-  const { data: stats, isLoading } = useQuery({
+  const { data: stats, isLoading, error } = useQuery({
     queryKey: ["/api/stats"],
     refetchInterval: 30000, // Refresh every 30 seconds
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
   });
 
+  // Loading state
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -26,6 +29,24 @@ export default function StatsOverview() {
             </CardContent>
           </Card>
         ))}
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <Card className="md:col-span-4">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-center space-x-2 text-amber-600">
+              <AlertCircle className="h-5 w-5" />
+              <span className="text-sm">
+                Unable to load statistics. Using default values.
+              </span>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }

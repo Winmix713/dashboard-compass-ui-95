@@ -616,7 +616,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const stats = await storage.getStats();
       res.json(stats);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch statistics" });
+      console.error("Error fetching stats:", error);
+      // Return fallback stats instead of error
+      res.json({
+        totalComponents: 0,
+        totalTokens: 0,
+        averageProcessingTime: 0,
+        successRate: 0
+      });
     }
   });
 
